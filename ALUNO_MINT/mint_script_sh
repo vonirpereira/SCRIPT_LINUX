@@ -1,0 +1,212 @@
+#!/bin/bash
+
+# =========================================================================
+# Script de Instalação e Configuração para o Laboratório - ALUNO
+# Autor: Vonir Antônio Pereira
+# Última alteração: 10/10/2025
+# =========================================================================
+
+echo "Iniciando a instalação e configuração do sistema LINUX - MINT."
+
+###----------------------------------------------###
+# 1. Adiciona o usuário 'aluno' ao grupo sudo usando sudo (se o usuário que executa o script já for sudoer)
+sudo usermod -aG sudo aluno
+
+###----------------------------------------------###
+# 2. comentar a primeira linha do source.list
+sudo sed -i '1s/^/# /' /etc/apt/sources.list
+sudo apt update -y
+sudo apt upgrade -y
+
+###----------------------------------------------###
+# 3. login automático
+sudo sed -i 's/#AutomaticLoginEnable = true/AutomaticLoginEnable = true/' /etc/gdm3/daemon.conf
+sudo sed -i 's/#AutomaticLogin = user1/AutomaticLogin = aluno/' /etc/gdm3/daemon.conf
+
+###----------------------------------------------###
+# 4. Instalação de aplicativos e pacotes necessários
+echo "Instalando aplicativos de software livre..."
+sudo apt install -y tuxmath tuxpaint kolourpaint inkscape default-jre gcompris-qt arduino knetwalk gedit bilibop-lockfs 
+
+##----------------------------------------------###
+# 5. renomear para poder instalar o snap
+sudo mv /etc/apt/preferences.d/nosnap.pref /etc/apt/preferences.d/nosnap.backup
+sudo apt update -y
+sudo apt install y snapd snap 
+sudo snap install scratux -y
+
+###----------------------------------------------###
+# 6. Movimenta e configura arquivos
+echo "Movendo e configurando arquivos..."
+sudo chmod a+x eduactiv8_4.25.07-1_all.deb 
+sudo chmod 777 xlogo.jar xlogo.png wallpaper.png 
+sudo mv xlogo.jar /opt
+sudo mv xlogo.png /opt
+sudo mv eduactiv8_4.25.07-1_all.deb /opt
+sudo mv wallpaper.png /opt
+sudo mv /home/aluno/Downloads/Compartilhar.png /home/aluno/Documentos/
+mv *.desktop /home/aluno/Área\ de\ trabalho/
+
+###----------------------------------------------###
+# 7. Configurações do ambiente de desktop (MATE)
+echo "Configurando o ambiente MATE..."
+dconf write /org/mate/caja/desktop/trash-icon-visible true
+dconf write /org/mate/caja/desktop/computer-icon-visible true
+# alterar papel de parede
+gsettings set org.mate.background picture-filename '/opt/wallpaper.png'
+# desmarcar o bloqueio de tela quando a proteção estiver ativa
+gsettings set org.mate.screensaver lock-enabled false
+
+###----------------------------------------------###
+# 8. Instalação do EduActiv8
+sudo dpkg -i /opt/eduactiv8_4.25.07-1_all.deb 
+sudo apt install espeak -y
+sudo apt --fix-broken install -y
+sudo dpkg -i /opt/eduactiv8_4.25.07-1_all.deb 
+
+###----------------------------------------------###
+# 9. Configuração do Veyon
+echo "Configurando o Veyon..."
+sudo mv veyon_4.9.5.0-ubuntu.24.04_amd64.deb /opt
+sudo dpkg -i /opt/veyon_4.9.5.0-ubuntu.24.04_amd64.deb
+sudo apt install -y libvncserver1
+sudo apt --fix-broken install -y
+sudo dpkg -i /opt/veyon_4.9.5.0-ubuntu.24.04_amd64.deb
+# cria a pasta se não existir
+sudo mkdir -p /etc/veyon
+# remove a pasta de chaves existente 
+sudo rm -rf /etc/veyon/keys
+# move a pasta de chaves
+sudo mv keys/ /etc/veyon/
+sudo veyon-cli config set Authentication/Method 1
+sudo systemctl restart veyon.service
+
+###----------------------------------------------###
+# 10. Oculta o Veyon Master
+echo "Ocultando o Veyon Master do menu de aplicativos..."
+VEYON_MASTER_DESKTOP="/usr/share/applications/veyon-master.desktop"
+if [ ! -f "$VEYON_MASTER_DESKTOP" ]; then
+    echo "Erro: O arquivo .desktop do Veyon Master não foi encontrado."
+else
+    if grep -q "NoDisplay=true" "$VEYON_MASTER_DESKTOP"; then
+        echo "O atalho do Veyon Master já está oculto."
+    else
+        echo "NoDisplay=true" | sudo tee -a "$VEYON_MASTER_DESKTOP" > /dev/null
+        echo "Ocultado com sucesso."
+    fi
+fi
+
+###----------------------------------------------###
+# 11. Modifica configuração do Tuxpaint - usar tela cheia
+sudo mv tuxpaintrc_ajustado /home/aluno/.tuxpaintrc
+
+###----------------------------------------------### 
+# 12. Adiciona ARDUBLOCK no arduino e o usuário ao grupo dialout (acessar USBs)
+# cria a pasta se não existir
+mkdir -p /home/aluno/Arduino
+# remove a pasta tools existente
+sudo rm -rf /home/aluno/Arduino/tools
+# move a pasta tools
+sudo mv tools/ /home/aluno/Arduino/
+# Torna aluno dono da pasta
+sudo chown -R aluno:aluno /home/aluno/Arduino
+sudo usermod -aG dialout aluno
+
+###----------------------------------------------###
+# 13. INSTALAR SSH
+# para ACESSAR: ssh aluno@debian-professor ou aluno (usuario@nomedamaquina)
+# para restaurar servico veyon: sudo systemctl restart veyon.service
+sudo apt install -y openssh-server openssh-client sshpass ssh 
+
+###----------------------------------------------###
+# 14. LIMPAR A LIXEIRA - NECESSARIO COMANDO trash-empty DO PACOTE trash-cli
+sudo apt install -y trash-cli 
+# yes: É um comando que simplesmente repete a palavra "yes" (sim) 	indefinidamente.
+# | (pipe): Redireciona a saída do comando yes para a entrada do comando trash-empty.
+yes | trash-empty
+
+###----------------------------------------------###
+# 15. ORGANIZAR OS ÍCONES NA AREA DE TRABALHO
+# Instale o xdotool se ainda não o tiver: sudo apt install xdotool
+sudo apt install -y xdotool
+# Posição segura na área de trabalho para abrir o menu
+X=200
+Y=200
+# 1. Abre o menu de contexto na posição (clique direito)
+xdotool mousemove $X $Y click 3
+# Aumenta a pausa para garantir que o menu apareça completamente
+sleep 0.5 
+# 2. Garante que o foco está no topo (opcional, mas ajuda a redefinir a navegação)
+xdotool key Home
+sleep 0.1
+# 3. Navega até a opção "Organizar por nome"
+# Contagem: 
+# Home/Cima: Criar pasta
+# Down 1: Criar lançador...
+# Down 2: Criar documento
+# Down 3: Abrir no terminal
+# Down 4: Organizar por nome (Este é o alvo)
+xdotool key Down Down Down Down
+sleep 0.1
+# 4. Seleciona a opção
+xdotool key Return
+echo "Ícones da área de trabalho organizados por nome."
+sleep 5
+
+###----------------------------------------------###
+# 16. BLOQUEAR POSIÇÃO DOS ÍCONES DA AREA DE TRABALHO
+# Posição segura na área de trabalho para abrir o menu
+X=200
+Y=200
+# 1. Abre o menu de contexto na posição (clique direito)
+xdotool mousemove $X $Y click 3
+# Aumenta a pausa para garantir que o menu apareça completamente
+sleep 0.5 
+# 2. Garante que o foco está no topo (opcional, mas ajuda a redefinir a navegação)
+xdotool key Home
+sleep 0.1
+# 3. Navega até a opção "Bloquear a posição dos ícones"
+# Contagem: 
+# Home/Cima: Criar pasta
+# Down 1: Criar lançador...
+# Down 2: Criar documento
+# Down 3: Abrir no terminal
+# Down 4: Organizar por nome 
+# Down 5: Manter alinhado
+# Down 6: Bloquear a posição dos ícones (Este é o alvo)
+xdotool key Down Down Down Down Down Down
+sleep 0.1
+# 4. Seleciona a opção
+xdotool key Return
+echo "Bloqueado posição dos ícones na Área de trabalho"
+sleep 5
+
+###----------------------------------------------###
+# 17. BILIBOP-LOCKFS - SE QUISER STARTAR É SÓ REMOVER # DO ARQUIVO /etc/bilibop/bilibop.conf
+# Script para deixar Documentos, Downloads, Modelos e Vídeos persistentes
+
+echo ">>> Configurando bilibop-lockfs..."
+CONF=/etc/bilibop/bilibop.conf
+sudo cp $CONF $CONF.backup.$(date +%F-%H%M)
+
+# Garante que o lockfs está ativo
+if grep -q '^BILIBOP_LOCKFS=' $CONF; then
+    sudo sed -i 's/^BILIBOP_LOCKFS=.*/#BILIBOP_LOCKFS="true"/' $CONF
+else
+    echo '#BILIBOP_LOCKFS="true"' | sudo tee -a $CONF
+fi
+
+###----------------------------------------------###
+# 18. AUTODESTRUIÇÃO DO ARQUIVO 
+rm "$0"
+
+echo " "
+echo " "
+echo ">>> Tudo pronto!"
+echo " "
+echo "SEU SISTEMA PRECISA SER REINICIADO!"
+
+exit 0
+
+
+

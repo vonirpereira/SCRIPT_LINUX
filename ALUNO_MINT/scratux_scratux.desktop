@@ -1,0 +1,12 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+X-SnapInstanceName=scratux
+Name=scratux
+X-SnapAppName=scratux
+Exec=env BAMF_DESKTOP_FILE_HINT=/var/lib/snapd/desktop/applications/scratux_scratux.desktop /snap/bin/scratux
+Terminal=false
+Type=Application
+Icon=/snap/scratux/7/meta/gui/icon.png
+StartupWMClass=scratux
+Comment=A free programming language where you can create your own interactive stories, games, and animations
+Categories=Education;
