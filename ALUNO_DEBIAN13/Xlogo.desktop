@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Name[pt_BR]=Xlogo
+Exec=java -jar /opt/xlogo.jar
+Icon=/opt/xlogo.png
+Icon[pt_BR]=/opt/xlogo.png
+Name=Xlogo

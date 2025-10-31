@@ -1,0 +1,9 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Type=Link
+Name[pt_BR]=Atividades
+URL=smb://debian-professor.local/
+Icon=/home/aluno/Documentos/Compartilhar.png
+Icon[pt_BR]=/home/aluno/Documentos/Compartilhar.png
+Name=Atividades
