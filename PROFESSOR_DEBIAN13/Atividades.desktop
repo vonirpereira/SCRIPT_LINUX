@@ -1,0 +1,9 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Type=Link
+Name[pt_BR]=Atividades
+URL=/home/professor/atividades
+Icon=/home/professor/Documentos/Compartilhar.png
+Icon[pt_BR]=/home/professor/Documentos/Compartilhar.png
+Name=Atividades
